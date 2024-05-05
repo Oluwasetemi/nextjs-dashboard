@@ -6,6 +6,8 @@ import { AuthError } from 'next-auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { hash } from 'bcrypt';
+import { isRedirectError } from 'next/dist/client/components/redirect';
 
 const FormSchema = z.object({
   id: z.string(),
@@ -15,8 +17,28 @@ const FormSchema = z.object({
   date: z.string(),
 });
 
+const RegisterSchema = z.object({
+  email: z.string().email(),
+  name: z.string().min(1),
+  password: z.string().min(6),
+  confirmPassword: z.string().min(6),
+});
+
+const Register = RegisterSchema.omit({ confirmPassword: true });
+const RegisterType = Register['_output'];
+
+const FullRegisterSchema = RegisterSchema.refine(
+  (data) => {
+    return data.confirmPassword === data.password;
+  },
+  {
+    message: "Passwords don't match.",
+    path: ['confirmPassword'],
+  },
+);
+
 // This is temporary until @types/react-dom is updated
-export type State = {
+export type CreateInvoiceState = {
   errors?: {
     customerId?: string[];
     amount?: string[];
@@ -25,20 +47,23 @@ export type State = {
   message?: string | null;
 };
 
+export type RegisterState = {
+  errors?: {
+    email?: string[];
+    name?: string[];
+    password?: string[];
+    confirmPassword?: string[];
+  };
+  message?: string | null;
+};
+
 const CreateInvoice = FormSchema.omit({ id: true, date: true });
 // console.log('CreateInvoice', CreateInvoice)
 
-export async function createInvoice(prevState: State, formData: FormData) {
-// export async function createInvoice(formData: FormData) {
-  console.log(typeof formData.get('amount'))
-  console.log(typeof Number(formData.get('amount')))
-
-  console.log({
-    customerId: formData.get('customerId'),
-    amount: Number(formData.get('amount')),
-    status: formData.get('status'),
-  })
-
+export async function createInvoice(
+  prevState: CreateInvoiceState,
+  formData: FormData,
+) {
   const validatedFields = CreateInvoice.safeParse({
     customerId: formData.get('customerId'),
     amount: Number(formData.get('amount')),
@@ -106,9 +131,19 @@ export async function deleteInvoice(id: string) {
   await sql`
     DELETE FROM invoices
     WHERE id = ${id}
-  `
+  `;
 
   revalidatePath('/dashboard/invoices');
+}
+
+export async function createUser(formData: typeof RegisterType) {
+  const result = await sql`
+    INSERT INTO users (email, name, password)
+    VALUES (${formData.email}, ${formData.name}, ${formData.password})`;
+
+  console.log('result', result);
+
+  return result.rowCount;
 }
 
 export async function authenticate(
@@ -127,5 +162,60 @@ export async function authenticate(
       }
     }
     throw error;
+  }
+}
+
+export async function register(
+  prevState: RegisterState | undefined,
+  formData: FormData,
+) {
+  try {
+    const validatedFields = FullRegisterSchema.safeParse({
+      email: formData.get('email'),
+      name: formData.get('name'),
+      password: formData.get('password'),
+      confirmPassword: formData.get('confirm-password'),
+    });
+
+    if (!validatedFields.success) {
+      return {
+        errors: validatedFields.error.flatten().fieldErrors,
+        message: 'Missing Fields. Failed to Create User.',
+      };
+    }
+
+    const { email, password, name } = validatedFields.data;
+
+    // hash password
+    const hashedPassword = await hash(password, 10);
+
+    const rowCount = await createUser({
+      email,
+      password: hashedPassword,
+      name,
+    });
+
+    if (rowCount !== 1) {
+      return {
+        message: 'Database Error: Failed to Create User.',
+      };
+    }
+
+    // authenticate user
+    await signIn('credentials', { email, password });
+
+    return;
+  } catch (error: any) {
+    if (error.code === '23505') {
+      return {
+        message: 'Email already exists.Try Again',
+      };
+    }
+    if (isRedirectError(error)) {
+      redirect('/dashboard');
+    }
+    return {
+      message: error.message,
+    };
   }
 }

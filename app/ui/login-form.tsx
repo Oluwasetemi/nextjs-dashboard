@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import { authenticate } from '@/app/lib/actions';
 import { lusitana } from '@/app/ui/fonts';
@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from './button';
+import Link from 'next/link';
 
 export default function LoginForm() {
   const [errorMessage, dispatch] = useFormState(authenticate, undefined);
@@ -73,6 +74,14 @@ export default function LoginForm() {
             </>
           )}
         </div>
+      </div>
+      <div className="text-center text-sm text-gray-500">
+        <p>
+          Don&apos;t have an account?{' '}
+          <Link href="/register" className="text-blue-500">
+            Sign up
+          </Link>
+        </p>
       </div>
     </form>
   );
