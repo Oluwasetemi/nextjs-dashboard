@@ -1,10 +1,7 @@
 import Image from 'next/image';
 import { lusitana } from '@/app/ui/fonts';
 import Search from '@/app/ui/search';
-import {
-  CustomersTableType,
-  FormattedCustomersTable,
-} from '@/app/lib/definitions';
+import { FormattedCustomersTable } from '@/app/lib/definitions';
 
 export default async function CustomersTable({
   customers,
@@ -57,7 +54,10 @@ export default async function CustomersTable({
                       </div>
                     </div>
                     <div className="pt-4 text-sm">
-                      <p>{customer.total_invoices} invoices</p>
+                      <p>
+                        {customer.total_invoices} invoice
+                        {customer?.total_invoices > 1 && 's'}
+                      </p>
                     </div>
                   </div>
                 ))}
