@@ -29,7 +29,6 @@ export async function fetchGitHubUser() {
 
     return data;
   } catch (error) {
-    console.error('Database Error:', error);
     throw new Error('Failed to fetch github from /api/hello data.');
   }
 }

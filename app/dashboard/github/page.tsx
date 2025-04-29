@@ -4,6 +4,8 @@ import { fetchGitHubUser } from '@/app/lib/api';
 import { Suspense } from 'react';
 import Image from 'next/image';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Github',
 };
