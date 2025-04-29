@@ -1,7 +1,7 @@
 import { lusitana } from '@/app/ui/fonts';
 import { Metadata } from 'next';
 import { fetchGitHubUser } from '@/app/lib/api';
-import { Suspense } from 'react';
+import { Suspense, use } from 'react';
 import Image from 'next/image';
 
 export const dynamic = 'force-dynamic';
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function GitHubPage() {
-  const userData = await fetchGitHubUser();
+  const userData = use(fetchGitHubUser());
 
   if (!userData) {
     return (
