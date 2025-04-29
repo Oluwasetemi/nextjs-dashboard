@@ -1,15 +1,23 @@
 import { lusitana } from '@/app/ui/fonts';
 import { Metadata } from 'next';
-import { fetchGitHubUser } from '@/app/lib/api'
+import { fetchGitHubUser } from '@/app/lib/api';
 import { Suspense } from 'react';
 import Image from 'next/image';
 
 export const metadata: Metadata = {
   title: 'Github',
-}
+};
 
 export default async function GitHubPage() {
-  const userData = await fetchGitHubUser()
+  const userData = await fetchGitHubUser();
+
+  if (!userData) {
+    return (
+      <div className="w-full">
+        <h1 className={`${lusitana.className} text-2xl`}>No GitHub</h1>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -18,7 +26,7 @@ export default async function GitHubPage() {
       </div>
 
       <Suspense key={'github'} fallback={<h1>Loading</h1>}>
-        <GitHubUserCard user={userData} />
+        {userData && <GitHubUserCard user={userData} />}
       </Suspense>
       {/* <div className="mt-5 flex w-full justify-center">
         <Pagination totalPages={totalPages} />
