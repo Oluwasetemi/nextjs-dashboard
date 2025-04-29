@@ -1,4 +1,5 @@
-import { unstable_noStore as noStore } from 'next/cache';
+// import { unstable_noStore as noStore } from 'next/cache';
+import { headers } from 'next/headers';
 
 export async function fetchGitHubUser() {
   // Add noStore() here to prevent the response from being cached.
@@ -12,7 +13,16 @@ export async function fetchGitHubUser() {
     console.log('Fetching github from /api/hello data...');
     await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    const res = await fetch('/api/hello');
+    const headersList = headers();
+
+    const host = headersList.get('host');
+    const protocol = headersList.get('x-forwarded-proto') || 'http'; // usually 'https' on Vercel
+    const path = '/api/hello'; // You don't automatically get the path — you'd have to pass it manually if needed.
+
+    const fullUrl = `${protocol}://${host}${path}`;
+
+    console.log('Full URL:', fullUrl);
+    const res = await fetch(fullUrl);
     const data = await res.json();
 
     console.log('Data fetch completed after 3 seconds.');
