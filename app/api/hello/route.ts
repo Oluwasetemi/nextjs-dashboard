@@ -1,7 +1,5 @@
 export async function POST() {
   try {
-
-
     return Response.json({
       message: 'Hello World',
     });
@@ -14,6 +12,7 @@ export async function POST() {
 export async function GET() {
   try {
     const user = await fetch('https://api.github.com/users/Oluwasetemi');
+    // console.log(user);
     const data = await user.json();
 
     // console.log(data);
