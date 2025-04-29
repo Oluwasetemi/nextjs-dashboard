@@ -18,7 +18,7 @@ export async function fetchGitHubUser() {
     const host = headersList.get('host');
     const protocol = headersList.get('x-forwarded-proto') || 'http'; // usually 'https' on Vercel
     const path = 'api/hello'; // You don't automatically get the path — you'd have to pass it manually if needed.
-    console.log(process.env);
+    console.log(process.env.NODE_ENV);
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
     const fullUrl = `${siteUrl}${path}`;
