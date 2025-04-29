@@ -12,7 +12,7 @@ export async function fetchGitHubUser() {
     console.log('Fetching github from /api/hello data...');
     await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    const res = await fetch('http://localhost:3000/api/hello');
+    const res = await fetch('/api/hello');
     const data = await res.json();
 
     console.log('Data fetch completed after 3 seconds.');
